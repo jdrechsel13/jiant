@@ -132,7 +132,7 @@ def setup_runner(
 def run_loop(args: RunConfiguration, checkpoint=None):
     is_resumed = checkpoint is not None
     quick_init_out = initialization.quick_init(args=args, verbose=True)
-    print(quick_init_out.n_gpu)
+    #print(quick_init_out.n_gpu)
     with quick_init_out.log_writer.log_context():
         jiant_task_container = container_setup.create_jiant_task_container_from_json(
             jiant_task_container_config_path=args.jiant_task_container_config_path,
@@ -197,6 +197,16 @@ def run_loop(args: RunConfiguration, checkpoint=None):
             jiant_evaluate.write_preds(
                 eval_results_dict=test_results_dict,
                 path=os.path.join(args.output_dir, "test_preds.p"),
+            )
+
+            test_results_dict = runner.run_val(
+                task_name_list=runner.jiant_task_container.task_run_config.test_task_list, type='test'
+            )
+            jiant_evaluate.write_val_results(
+                val_results_dict=test_results_dict,
+                output_dir=args.output_dir,
+                metrics_aggregator=runner.jiant_task_container.metrics_aggregator,
+                type='test'
             )
 
     if (

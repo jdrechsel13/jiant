@@ -210,7 +210,23 @@ def main(args: RunConfiguration):
             tokenizer=tokenizer,
             args=args,
         )
+        evaluation_scheme = evaluate.get_evaluation_scheme_for_task(task)
+        test_examples = task.get_test_examples()
+        shared_caching.chunk_and_save(
+            data=evaluation_scheme.get_labels_from_cache_and_examples(
+                task=task,
+                cache=shared_caching.ChunkedFilesDataCache(
+                    os.path.join(args.output_dir, PHASE.TEST)
+                ),
+                examples=test_examples,
+            ),
+            chunk_size=args.chunk_size,
+            data_args=args.to_dict(),
+            output_dir=os.path.join(args.output_dir, "test_labels"),
+        )
+
         paths_dict[PHASE.TEST] = os.path.join(args.output_dir, PHASE.TEST)
+        paths_dict["test_labels"] = os.path.join(args.output_dir, "test_labels")
 
     if not args.skip_write_output_paths:
         py_io.write_json(data=paths_dict, path=os.path.join(args.output_dir, "paths.json"))

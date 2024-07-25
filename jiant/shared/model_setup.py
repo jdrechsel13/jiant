@@ -66,7 +66,7 @@ def create_optimizer_from_params(
         "adapter.up_project.weight",
         "weighted_sum.weights",
     ]
-    if verbose:
+    if False and verbose:
         print("No optimizer decay for:")
         for n, p in named_parameters:
             if any(nd in n for nd in no_decay):
@@ -94,7 +94,7 @@ def create_optimizer_from_params(
     if optimizer_type == "adam":
         if verbose:
             print("Using AdamW")
-        optimizer = transformers.AdamW(
+        optimizer = torch.optim.AdamW(
             optimizer_grouped_parameters, lr=learning_rate, eps=optimizer_epsilon
         )
     elif optimizer_type == "radam":

@@ -127,13 +127,13 @@ class JiantRunner:
             },
         )
 
-    def run_val(self, task_name_list, use_subset=None, return_preds=False, verbose=True):
+    def run_val(self, task_name_list, use_subset=None, return_preds=False, verbose=True, type='val'):
         evaluate_dict = {}
         val_dataloader_dict = self.get_val_dataloader_dict(
-            task_name_list=task_name_list, use_subset=use_subset
+            task_name_list=task_name_list, use_subset=use_subset, type=type
         )
         val_labels_dict = self.get_val_labels_dict(
-            task_name_list=task_name_list, use_subset=use_subset
+            task_name_list=task_name_list, use_subset=use_subset, type=type
         )
         for task_name in task_name_list:
             task = self.jiant_task_container.task_dict[task_name]
@@ -196,18 +196,18 @@ class JiantRunner:
             )
         return val_dataloader_dict
 
-    def get_val_dataloader_dict(self, task_name_list, use_subset=False):
+    def get_val_dataloader_dict(self, task_name_list, use_subset=False, type='val'):
         return self._get_eval_dataloader_dict(
-            phase="val",
+            phase=type,
             task_name_list=task_name_list,
             use_subset=use_subset,
         )
 
-    def get_val_labels_dict(self, task_name_list, use_subset=False):
+    def get_val_labels_dict(self, task_name_list, use_subset=False, type='val'):
         val_labels_dict = {}
         for task_name in task_name_list:
             task_specific_config = self.jiant_task_container.task_specific_configs[task_name]
-            val_labels_cache = self.jiant_task_container.task_cache_dict[task_name]["val_labels"]
+            val_labels_cache = self.jiant_task_container.task_cache_dict[task_name][f"{type}_labels"]
             val_labels = val_labels_cache.get_all()
             if use_subset:
                 val_labels = val_labels[: task_specific_config.eval_subset_num]

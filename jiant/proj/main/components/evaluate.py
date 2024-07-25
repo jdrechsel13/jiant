@@ -7,7 +7,7 @@ import jiant.utils.python.io as py_io
 import jiant.proj.main.components.task_sampler as jiant_task_sampler
 
 
-def write_val_results(val_results_dict, metrics_aggregator, output_dir, verbose=True):
+def write_val_results(val_results_dict, metrics_aggregator, output_dir, verbose=True, type='val'):
     full_results_to_write = {
         "aggregated": jiant_task_sampler.compute_aggregate_major_metrics_from_results_dict(
             metrics_aggregator=metrics_aggregator,
@@ -26,7 +26,42 @@ def write_val_results(val_results_dict, metrics_aggregator, output_dir, verbose=
     if verbose:
         print(metrics_str)
 
-    py_io.write_json(data=full_results_to_write, path=os.path.join(output_dir, "val_metrics.json"))
+    py_io.write_json(data=full_results_to_write, path=os.path.join(output_dir, f"{type}_metrics.json"))
+
+
+import numpy as np
+
+
+def jsonify(obj):
+    """
+    Recursively convert an object to a JSON-compatible format.
+
+    Args:
+        obj: The input object to be converted.
+
+    Returns:
+        The JSON-compatible version of the input object.
+    """
+    if isinstance(obj, dict):
+        return {key: jsonify(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [jsonify(element) for element in obj]
+    elif isinstance(obj, tuple):
+        return tuple(jsonify(element) for element in obj)
+    elif isinstance(obj, set):
+        return list(jsonify(element) for element in obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (np.integer, np.int32, np.int64)):
+        return int(obj)
+    elif isinstance(obj, (np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, (np.bool_)):
+        return bool(obj)
+    elif hasattr(obj, '__dict__'):
+        return jsonify(obj.__dict__)
+    else:
+        return obj
 
 
 def write_preds(eval_results_dict, path):
@@ -37,3 +72,5 @@ def write_preds(eval_results_dict, path):
             "guids": task_results_dict["accumulator"].get_guids(),
         }
     torch.save(preds_dict, path)
+
+    json.dump(jsonify(preds_dict), open(path.replace('.p', '.json'), 'w+'), indent=2)
